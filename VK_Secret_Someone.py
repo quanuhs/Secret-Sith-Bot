@@ -807,12 +807,23 @@ def player_actions(player, request):
                 create_lobby(player, original_requset)
 
         elif player.status == "connecting_to_lobby":
+            if request == "!menu":
+                player.update_status("")
+                msg_k(player, main_keyboard(player), player.language("return"))
+                return
+            else:
+                if not request.isnumeric():
+                    msg(player.user_id, player.language("wrong_lobby_id"))
+
             conn = connect_to_lobby(player, request, "")
             if conn:
                 if conn == "password":
                     player.update_status("connecting_to_lobby-%s"%request)
                     msg(player.user_id, player.language("password_req"))
                     return
+            else:
+                msg(player.user_id, player.language("no_lobby_found"))
+                return
 
         elif player.status.startswith("connecting_to_lobby-"):
             lobby_id = player.status.split("-", 1)[1]
