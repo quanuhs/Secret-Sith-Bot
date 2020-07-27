@@ -1,0 +1,1 @@
+worker: python VK_Secret_Someone.py
