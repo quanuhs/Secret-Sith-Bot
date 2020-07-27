@@ -765,13 +765,16 @@ def choose_chancellor(user_id, lobby, page):
 
 
 def all_players_in_lobby(lobby, page):
-    q.execute("SELECT * FROM user_info WHERE Lobby_ID = '%s'" % (lobby.id))
-    players = q.fetchall()
+    players = lobby.players
+
+    all_players = []
     text = "\n"
     for i in range(len(players)):
-        text += str(i+1) + ". @id%s (%s)\n"%(players[i][0], players[i][7])
+        player = get_player(players[i])
+        text += str(i+1) + ". @id%s (%s)\n"%(player[0][0], player[0][7])
+        all_players.append(player)
 
-    return {'keyboard':list_keyboard(players, page, 7, "!choose"), 'text':text}
+    return {'keyboard':list_keyboard(all_players, page, 7, "!choose"), 'text':text}
 
 
 def users_in_same_lobby(first_user_id, second_user_id):
@@ -914,6 +917,7 @@ def player_actions(player, request):
                 if not request.isnumeric():
                     msg(player.user_id, player.language("must_be_numeric"))
                     return
+
                 request = int(request) - 1
                 all_players = lobby.players
                 if request < len(all_players):
@@ -923,7 +927,7 @@ def player_actions(player, request):
                     return
 
                 if users_in_same_lobby(player.user_id, int(request)):
-                    if not can_chancellor(get_player(int(request)), lobby):
+                    if not can_chancellor(get_player(int(request)), lobby) or int(request) == int(player.user_id):
                         msg(player.user_id, player.language("wrong_user"))
                     else:
                         player.update_game_status("")
@@ -947,7 +951,7 @@ def player_actions(player, request):
                         player.update_game_status("")
                         chancellor = Player(get_player(lobby.current_chancellor))
 
-                        if lobby.current_president == player.user_id:
+                        if lobby.current_president == player.user_id and len(cards_in_use) > 2:
                             disc = disc + [cards_in_use[request]]
                             lobby.update_discard(disc)
                             cards_in_use.pop(request)
