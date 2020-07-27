@@ -784,7 +784,7 @@ def player_actions(player, request):
         if request == "!menu":
             player.update_status("")
             player.lobby_id = -1
-            q.execute("UPDATE user_info SET Lobby_ID = '' WHERE User_ID = '%s'"%(player.user_id))
+            q.execute("UPDATE user_info SET Lobby_ID = '-1' WHERE User_ID = '%s'"%(player.user_id))
             connection.commit()
             msg_k(player.user_id, main_keyboard(player), player.language("return"))
 
