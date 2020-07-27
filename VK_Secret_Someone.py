@@ -1206,5 +1206,5 @@ while True:
 
 
     except Exception as e:
-        print(str(e)/0)
+        print(str(e))
         time.sleep(5)
