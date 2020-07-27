@@ -484,7 +484,7 @@ def connect_to_lobby(player, lobby_id, password):
                 players_list = lobby.players
                 for i in range(len(players_list)):
                     user = Player(get_player(players_list[i]))
-                    msg(user.user_id, "@id%s %s %s"%(user_id, user.language("someone_connected"), str(len(players_list))))
+                    msg(user.user_id, "@id%s %s %s"%(user_id, user.language("someone_connected"), str(len(players_list) + 1)))
 
                 players_list.append(user_id)
                 players_list = make_list_string(players_list)
