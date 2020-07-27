@@ -261,7 +261,7 @@ except Exception:
 
 def update_lobby(lobby_id, param, value):
     q.execute(
-        "UPDATE lobby_info SET '%s' = '%s' WHERE Lobby_ID = '%s'" % (param, value, lobby_id))
+        "UPDATE lobby_info SET %s = '%s' WHERE Lobby_ID = '%s'" % (param, value, lobby_id))
     connection.commit()
 
 
