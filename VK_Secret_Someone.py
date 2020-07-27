@@ -482,15 +482,9 @@ def connect_to_lobby(player, lobby_id, password):
         if lobby.password == "" or lobby.password == password:
             if lobby.can_enter:
                 players_list = lobby.players
-                for i in range(len(players_list)):
-                    user = Player(get_player(players_list[i]))
-                    msg(user.user_id, "@id%s %s %s"%(user_id, user.language("someone_connected"), str(len(players_list) + 1)))
 
                 players_list.append(user_id)
                 players_list = make_list_string(players_list)
-
-
-                msg_k(player.user_id, lobby_keyboard(player), "%s %s\n%s %s"%(player.language("in_lobby"), str(lobby_id), player.language("someone_left_amount"), len(players_list)))
 
                 q.execute(
                     "UPDATE lobby_info SET Players_List = '%s' WHERE Lobby_ID = '%s'"
@@ -500,7 +494,19 @@ def connect_to_lobby(player, lobby_id, password):
                 player.lobby_id = lobby_id
                 connection.commit()
 
+
+                msg_k(player.user_id, lobby_keyboard(player), "%s %s\n%s %s"%(player.language("in_lobby"), str(lobby_id),
+                                                                              player.language("someone_left_amount"), len(lobby.players)))
+
+                players_in = lobby.players
                 player.update_status("in_lobby")
+
+                for i in range(len(players_in)):
+                    user = Player(get_player(players_in[i]))
+                    msg(user.user_id,
+                        "@id%s %s %s" % (player.user_id, user.language("someone_connected"), str(len(players_in))))
+
+
                 return True
 
         else:
