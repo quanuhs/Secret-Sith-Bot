@@ -232,7 +232,7 @@ try:
     q.execute('''CREATE TABLE lobby_info
                (
                Lobby_ID INTEGER,
-               Can_Enter BOOLEAN,
+               Can_Enter INTEGER,
                Lobby_Password TEXT,
                Players_Amount INTEGER,
                Players_List TEXT,
