@@ -178,6 +178,7 @@ token = os.environ.get('key')
 group_id = os.environ.get('group_id')
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
+
 vk = vk_api.VkApi(token=token)
 vk._auth_token()
 vk.get_api()
@@ -492,7 +493,7 @@ def connect_to_lobby(player, lobby_id, password):
                 player.lobby_id = lobby_id
                 connection.commit()
 
-                msg_k(player.user_id, lobby_keyboard(player), player.language("in_lobby"))
+                msg_k(player.user_id, lobby_keyboard(player), player.language("in_lobby") + " " + str(lobby_id))
                 player.update_status("in_lobby")
                 return True
 
@@ -814,6 +815,7 @@ def player_actions(player, request):
             else:
                 if not request.isnumeric():
                     msg(player.user_id, player.language("wrong_lobby_id"))
+                    return
 
             conn = connect_to_lobby(player, request, "")
             if conn:
@@ -821,9 +823,6 @@ def player_actions(player, request):
                     player.update_status("connecting_to_lobby-%s"%request)
                     msg(player.user_id, player.language("password_req"))
                     return
-            else:
-                msg(player.user_id, player.language("no_lobby_found"))
-                return
 
         elif player.status.startswith("connecting_to_lobby-"):
             lobby_id = player.status.split("-", 1)[1]
@@ -1200,5 +1199,5 @@ while True:
 
 
     except Exception as e:
-        print(str(e))
+        print(str(e)/0)
         time.sleep(5)
