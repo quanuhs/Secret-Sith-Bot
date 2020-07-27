@@ -489,6 +489,9 @@ def connect_to_lobby(player, lobby_id, password):
                 players_list.append(user_id)
                 players_list = make_list_string(players_list)
 
+
+                msg_k(player.user_id, lobby_keyboard(player), "%s %s\n%s %s"%(player.language("in_lobby"), str(lobby_id), player.language("someone_left_amount"), len(players_list)))
+
                 q.execute(
                     "UPDATE lobby_info SET Players_List = '%s' WHERE Lobby_ID = '%s'"
                     % (players_list, lobby_id))
@@ -496,8 +499,6 @@ def connect_to_lobby(player, lobby_id, password):
                 q.execute("UPDATE user_info SET Lobby_ID = '%s' WHERE User_ID = '%s'"%(lobby_id, user_id))
                 player.lobby_id = lobby_id
                 connection.commit()
-
-                msg_k(player.user_id, lobby_keyboard(player), "%s %s\n%s %s"%(player.language("in_lobby"), str(lobby_id), player.language("someone_left_amount"), len(players_list)))
 
                 player.update_status("in_lobby")
                 return True
@@ -534,7 +535,7 @@ def create_lobby(player, password):
 def leave(player):
     lobby = Lobby(get_lobby(player.lobby_id))
     players_list = lobby.players
-    for i in range(len(lobby.players)):
+    for i in range(len(lobby.players) + 1):
         if int(players_list[i]) == player.user_id:
             players_list.pop(i)
         else:
