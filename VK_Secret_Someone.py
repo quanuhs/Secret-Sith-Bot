@@ -669,8 +669,6 @@ def take_actions(lobby, amount):
     lobby.update_deck(deck)
     return cards_arr
 
-
-
 def setup_game(lobby):
     players = lobby.players
     random.shuffle(players)
@@ -862,7 +860,7 @@ def player_actions(player, request):
     else:
         lobby = Lobby(get_lobby(player.lobby_id))
         if request == "!bug" and lobby.host == player.user_id:
-            finish_game(lobby, "lib")
+            finish_game(lobby, "republican")
             return
 
         if lobby.status == "act" and player.user_id == lobby.current_president:
@@ -881,8 +879,11 @@ def player_actions(player, request):
                         victim = Player(get_player(request))
                         if player.game_status == "kill":
                             msg_k(victim.user_id, main_keyboard(victim), victim.language("death"))
-                            clear_user(victim)
-                            game_turn(lobby)
+                            if victim.role == "sith":
+                                finish_game(lobby, "republican")
+                            else:
+                                clear_user(victim)
+                                game_turn(lobby)
 
                         elif player.game_status == "check":
                             if victim.role == "sith":
