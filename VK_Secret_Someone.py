@@ -210,7 +210,7 @@ try:
                (
                User_ID INTEGER,
                Lobby_ID INTEGER,
-               Role INTEGER,
+               Role TEXT,
                Cards TEXT,
                Status TEXT,
                Game_Status TEXT,
@@ -539,6 +539,7 @@ def create_lobby(player, password):
     connect_to_lobby(player, lobby_id, password)
 
 def leave(player):
+    return
     lobby = Lobby(get_lobby(player.lobby_id))
     players_list = lobby.players
     for i in range(len(lobby.players) + 1):
