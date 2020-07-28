@@ -1008,7 +1008,7 @@ def player_actions(player, request):
 
                 if users_in_same_lobby(player.user_id, int(request)):
                     #дописать: or int(request) == int(player.user_id)
-                    if not can_chancellor(get_player(int(request)), lobby):
+                    if not can_chancellor(get_player(int(request)), lobby) or int(request) == int(player.user_id):
                         msg(player.user_id, player.language("wrong_user"))
                     else:
                         player.update_game_status("")
