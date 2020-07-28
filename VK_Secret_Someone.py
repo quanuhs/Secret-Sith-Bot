@@ -5,9 +5,11 @@ import os
 import psycopg2
 import random
 import sqlite3 as sql
+import threading
 
-#START
+# START
 import json
+
 
 def get_button(label, color, payload):
     return {
@@ -20,36 +22,37 @@ def get_button(label, color, payload):
     }
 
 
-
 def list_keyboard(array, page_forward, index, req):
-
     buttons_array = []
     mass = []
-    offset = 8
+
+    if len(array) > 10:
+        offset = 8
+    else:
+        offset = 10
 
     for i in range(page_forward, len(array)):
-        buttons_array.append(get_button(str(array[i][index]), "secondary", str(req)+" "+str(i+1)))
+        buttons_array.append(get_button(str(array[i][index]), "secondary", str(req) + " " + str(i + 1)))
 
-        if (i)%2 == 1 and len(buttons_array) > 0:
+        if (i) % 2 == 1 and len(buttons_array) > 0:
             mass.append(buttons_array)
             buttons_array = []
 
-        if i == page_forward+offset:
+        if i == page_forward + offset:
             break
 
     b_reg = []
     if page_forward > 0:
-        b_reg.append(get_button("<--", "negative", str(req)+"-goto_"+str(page_forward - offset)))
+        b_reg.append(get_button("<--", "negative", str(req) + "-goto_" + str(page_forward - offset)))
 
-    if len(array) > (page_forward+offset):
-        b_reg.append(get_button("-->", "positive", str(req)+"-goto_"+str(page_forward + offset)))
+    if len(array) > (page_forward + offset):
+        b_reg.append(get_button("-->", "positive", str(req) + "-goto_" + str(page_forward + offset)))
     else:
-        if len(array)%2 == 1:
-            mass.append([get_button(str(array[len(array)-1][index]), "secondary", str(req) + " " + str(len(array)))])
+        if len(array) % 2 == 1:
+            mass.append([get_button(str(array[len(array) - 1][index]), "secondary", str(req) + " " + str(len(array)))])
 
     if len(b_reg) != 0:
         mass.append(b_reg)
-
 
     keyboard = {
         "inline": True,
@@ -77,7 +80,6 @@ def three_keyboard(text1, color1, payload1, text2, color2, payload2, text3, colo
     return keyboard
 
 
-
 def create_keyboard(buttons):
     keyboard = {
         "one_time": False,
@@ -101,6 +103,7 @@ def create_inlinekeyboard(buttons):
     keyboard = str(keyboard.decode('utf-8'))
     return keyboard
 
+
 def one_keyboard(text1, color1, payload1):
     keyboard = {
         "one_time": False,
@@ -113,6 +116,7 @@ def one_keyboard(text1, color1, payload1):
     keyboard = json.dumps(keyboard, ensure_ascii=False).encode('utf-8')
     keyboard = str(keyboard.decode('utf-8'))
     return keyboard
+
 
 def two_keyboard(text1, color1, payload1, text2, color2, payload2):
     keyboard = {
@@ -134,7 +138,7 @@ def inline_one(text1, color1, payload1):
         "inline": True,
         "buttons": [
             [get_button(text1, color1, payload1)]
-                    ]
+        ]
     }
 
     keyboard = json.dumps(keyboard, ensure_ascii=False).encode('utf-8')
@@ -148,7 +152,7 @@ def inline_two(text1, color1, payload1, text2, color2, payload2):
         "buttons": [
             [get_button(text1, color1, payload1)],
             [get_button(text2, color2, payload2)]
-                    ]
+        ]
     }
 
     keyboard = json.dumps(keyboard, ensure_ascii=False).encode('utf-8')
@@ -163,7 +167,7 @@ def inline_three(text1, color1, payload1, text2, color2, payload2, text3, color3
             [get_button(text1, color1, payload1)],
             [get_button(text2, color2, payload2)],
             [get_button(text3, color3, payload3)]
-                    ]
+        ]
     }
 
     keyboard = json.dumps(keyboard, ensure_ascii=False).encode('utf-8')
@@ -171,13 +175,12 @@ def inline_three(text1, color1, payload1, text2, color2, payload2, text3, color3
     return keyboard
 
 
-#DELETE
+# DELETE
 
 # Ключи авторизации.
 token = os.environ.get('key')
 group_id = os.environ.get('group_id')
 DATABASE_URL = os.environ.get('DATABASE_URL')
-
 
 vk = vk_api.VkApi(token=token)
 vk._auth_token()
@@ -199,7 +202,7 @@ imp_cards = 11
 # 9-10: [проверкить, проверить карту, выбрать следующего, убить игрок, убить игрока + право веты, gg] 3 имперца 1 ситх
 
 
-#lobby_id, можно ли зайти, пароль, количество участников, список участников, текущий президент, текущий канслер,
+# lobby_id, можно ли зайти, пароль, количество участников, список участников, текущий президент, текущий канслер,
 # бывший президент, бывший канслер, колода, сброс, на доске империи, на доске либиралов, раскрытие закона, стадия, ход
 
 try:
@@ -336,7 +339,9 @@ class Lobby:
                 self.update_discard(self.discard)
                 add_to_table(self, card[0])
 
-        q.execute("UPDATE lobby_info SET Lib_State = '%s', Ex_President = '%s', Ex_Chancellor = '%s' WHERE Lobby_ID = '%s'"%(self.republican_state, -1, -1, self.id))
+        q.execute(
+            "UPDATE lobby_info SET Lib_State = '%s', Ex_President = '%s', Ex_Chancellor = '%s' WHERE Lobby_ID = '%s'" % (
+                self.republican_state, -1, -1, self.id))
         connection.commit()
 
     def change_rulers(self):
@@ -347,7 +352,7 @@ class Lobby:
 
         q.execute(
             "UPDATE lobby_info SET Current_President = '%s', Current_Chancellor = '%s', Ex_President = '%s', Ex_Chancellor = '%s' WHERE Lobby_ID = '%s'" % (
-            self.current_president, self.current_chancellor, self.ex_president, self.ex_chancellor, self.id))
+                self.current_president, self.current_chancellor, self.ex_president, self.ex_chancellor, self.id))
 
         connection.commit()
 
@@ -357,31 +362,31 @@ class Lobby:
         else:
             self.turn = 0
 
-        q.execute("UPDATE lobby_info SET Turn = '%s' WHERE Lobby_ID = '%s'"%(self.turn, self.id))
+        q.execute("UPDATE lobby_info SET Turn = '%s' WHERE Lobby_ID = '%s'" % (self.turn, self.id))
         connection.commit()
 
     def update_deck(self, deck):
         self.deck = deck
         deck = make_list_string(deck)
-        q.execute("UPDATE lobby_info SET Deck = '%s' WHERE Lobby_ID = '%s'"%(deck, self.id))
+        q.execute("UPDATE lobby_info SET Deck = '%s' WHERE Lobby_ID = '%s'" % (deck, self.id))
         connection.commit()
 
     def update_discard(self, discard):
         self.discard = discard
         discard = make_list_string(discard)
-        q.execute("UPDATE lobby_info SET Discard = '%s' WHERE Lobby_ID = '%s'"%(discard, self.id))
+        q.execute("UPDATE lobby_info SET Discard = '%s' WHERE Lobby_ID = '%s'" % (discard, self.id))
         connection.commit()
 
     def update_cards_in_use(self, cards_in_use):
         self.cards_in_use = cards_in_use
         cards_in_use = make_list_string(cards_in_use)
-        q.execute("UPDATE lobby_info SET In_Game_Cards = '%s' WHERE Lobby_ID = '%s'"%(cards_in_use, self.id))
+        q.execute("UPDATE lobby_info SET In_Game_Cards = '%s' WHERE Lobby_ID = '%s'" % (cards_in_use, self.id))
         connection.commit()
 
     def update_players(self, players_list):
         self.players = players_list
         if len(players_list) == 0:
-            q.execute("DELETE FROM lobby_info WHERE Lobby_ID = '%s'"%self.id)
+            q.execute("DELETE FROM lobby_info WHERE Lobby_ID = '%s'" % self.id)
         else:
             players_list = make_list_string(players_list)
             q.execute("UPDATE lobby_info SET Players_List = '%s' WHERE Lobby_ID = '%s'" % (players_list, self.id))
@@ -394,7 +399,8 @@ class Lobby:
         connection.commit()
 
     def update_rulers(self):
-        q.execute("UPDATE lobby_info SET Current_President = '%s', Current_Chancellor = '%s' WHERE Lobby_ID = '%s'" % (self.current_president, self.current_chancellor, self.id))
+        q.execute("UPDATE lobby_info SET Current_President = '%s', Current_Chancellor = '%s' WHERE Lobby_ID = '%s'" % (
+            self.current_president, self.current_chancellor, self.id))
         connection.commit()
 
     def update_status(self, status):
@@ -406,11 +412,11 @@ class Lobby:
 def get_line(language, line):
     conn = sql.connect("language.db", check_same_thread=False)
     info = conn.cursor()
-    info.execute("SELECT * FROM language WHERE KEY_TEXT = '%s' AND %s != ''"%(line, language))
+    info.execute("SELECT * FROM language WHERE KEY_TEXT = '%s' AND %s != ''" % (line, language))
     res = info.fetchall()
 
     if len(res) > 0:
-        ret = random.randint(0, len(res)-1)
+        ret = random.randint(0, len(res) - 1)
         if language == "RU":
             return res[ret][1]
         elif language == "ENG":
@@ -490,22 +496,20 @@ def connect_to_lobby(player, lobby_id, password):
                     "UPDATE lobby_info SET Players_List = '%s' WHERE Lobby_ID = '%s'"
                     % (players_list, lobby_id))
 
-                q.execute("UPDATE user_info SET Lobby_ID = '%s' WHERE User_ID = '%s'"%(lobby_id, user_id))
+                q.execute("UPDATE user_info SET Lobby_ID = '%s' WHERE User_ID = '%s'" % (lobby_id, user_id))
                 player.lobby_id = lobby_id
                 connection.commit()
-
-
-                msg_k(player.user_id, lobby_keyboard(player), "%s %s\n%s %s"%(player.language("in_lobby"), str(lobby_id),
-                                                                              player.language("someone_left_amount"), len(lobby.players)))
 
                 players_in = lobby.players
                 player.update_status("in_lobby")
 
                 for i in range(len(players_in)):
                     user = Player(get_player(players_in[i]))
-                    msg(user.user_id,
-                        "@id%s %s %s" % (player.user_id, user.language("someone_connected"), str(len(players_in))))
-
+                    if user.user_id != player.user_id:
+                        msg(user.user_id,
+                            "@id%s %s %s" % (player.user_id, user.language("someone_connected"), str(len(players_in))))
+                    else:
+                        msg_k(user.user_id, lobby_keyboard(user), user.language("in_lobby"))
 
                 return True
 
@@ -531,44 +535,66 @@ def create_lobby(player, password):
         "(Lobby_ID, Can_Enter, Lobby_Password, Players_Amount, Players_List, Current_President, "
         "Current_Chancellor, Ex_President, Ex_Chancellor,"
         "Deck, Discard, In_Place_Imp, In_Place_Lib, Lib_State, In_Game_Cards, Status, Turn, Lobby_Host) "
-        
+
         "VALUES ('%s', '%s','%s', '%s', '%s', '%s', '%s', '%s', '%s','%s','%s','%s','%s','%s','%s','%s','%s', '%s')" %
-        (lobby_id, 1, password, 0, "", -1, -1, -1, -1, set_lobby_deck(), "", 0, 0, 0, "", "waiting_for_players", -1, player.user_id))
+        (lobby_id, 1, password, 0, "", -1, -1, -1, -1, set_lobby_deck(), "", 0, 0, 0, "", "waiting_for_players", -1,
+         player.user_id))
     connection.commit()
 
     connect_to_lobby(player, lobby_id, password)
 
+
 def leave(player):
-    return
     lobby = Lobby(get_lobby(player.lobby_id))
     players_list = lobby.players
-    for i in range(len(lobby.players) + 1):
+    index = 0
+    # Go trow all users, check and notify. Delete the user at last.
+    for i in range(len(lobby.players)):
         if int(players_list[i]) == player.user_id:
-            players_list.pop(i)
+            index = i
         else:
             user = Player(get_player(int(players_list[i])))
-            msg(user.user_id, "@id"+str(player.user_id) + user.language("someone_left") +
+            msg(user.user_id, "@id" + str(player.user_id) + user.language("someone_left") +
                 user.language("someone_left_amount") + str(len(lobby.players) - 1))
 
+    players_list.pop(index)
     lobby.update_players(players_list)
+
 
 def get_player(user_id):
     q.execute("SELECT * FROM user_info WHERE User_ID = '%s'" % (user_id))
     return q.fetchall()
 
+
 def lobby_keyboard(player):
     lobby = Lobby(get_lobby(player.lobby_id))
 
     if lobby.host == player.user_id:
-        buttons = [[get_button(player.language("start"), "positive", "!start")],
+        buttons = [
+            [get_button(player.language("start"), "positive", "!start"),
+             get_button(player.language("list_players"), "primary", "!players")],
             [get_button(player.language("cancel"), "negative", "!leave")],
-            [get_button(player.language("rules"), "primary", "!rules"), get_button(player.lang, "secondary", "!language")]
+            [get_button(player.language("rules"), "primary", "!rules"),
+             get_button(player.lang, "secondary", "!language")]
         ]
     else:
         buttons = [
+            [get_button(player.language("list_players"), "primary", "!players")],
             [get_button(player.language("cancel"), "negative", "!leave")],
-            [get_button(player.language("rules"), "primary", "!rules"), get_button(player.lang, "secondary", "!language")]
+            [get_button(player.language("rules"), "primary", "!rules"),
+             get_button(player.lang, "secondary", "!language")]
         ]
+
+    return create_keyboard(buttons)
+
+
+def game_keyboard(player):
+    buttons = [
+        [get_button(player.language("table"), "primary", "!table")],
+        [get_button(player.language("list_players"), "primary", "!players")],
+        [get_button(player.language("rules"), "primary", "!rules"),
+         get_button(player.language("cancel"), "negative", "!leave"), get_button(player.lang, "secondary", "!language")]
+    ]
 
     return create_keyboard(buttons)
 
@@ -584,8 +610,10 @@ def vote_for_president(lobby, who_president, who_chancellor):
     for user in players:
         player = Player(get_player(int(user)))
 
-        text = "@id%s (%s) "%(who_president.user_id, who_president.nickname) + player.language("runs_for_president") + "\n " \
-        "@id%s (%s) "%(who_chancellor.user_id, who_chancellor.nickname) + player.language("runs_for_chancellor")
+        text = "@id%s (%s) " % (who_president.user_id, who_president.nickname) + player.language(
+            "runs_for_president") + "\n " \
+                                    "@id%s (%s) " % (who_chancellor.user_id, who_chancellor.nickname) + player.language(
+            "runs_for_chancellor")
         player.update_game_status("vote")
         msg_k(player.user_id,
               inline_two(player.language("yes"), "positive", "!yes", player.language("no"), "negative", "!no"), text)
@@ -593,26 +621,32 @@ def vote_for_president(lobby, who_president, who_chancellor):
 
 def actions_keyboard(user_id, cards_list):
     player = Player(get_player(user_id))
+    lobby = Lobby(get_lobby(player.lobby_id))
+
     buttons = []
-    print(cards_list)
+
+    same_amount = 0
     for i in range(len(cards_list)):
         if int(cards_list[i]):
             color = "primary"
             name = player.language("rep")
+            same_amount -= 1
         else:
             color = "negative"
             name = player.language("imp")
+            same_amount += 1
 
-        buttons.append([get_button(name, color, "!choose "+str(i+1))])
+        buttons.append([get_button(name, color, "!choose " + str(i + 1))])
+
+        if lobby.imperial_table == 5 and user_id == lobby.current_chancellor and abs(same_amount) == 2:
+            lobby.update_status("can_veto")
+            buttons.append(get_button(player.language("veto"), "positive", "!veto"))
 
     return create_inlinekeyboard(buttons)
 
 
-
-
-
 def vote_for_rulers(lobby, who, choice):
-    q.execute("SELECT * FROM user_info WHERE Lobby_ID = '%s' and Game_Status = '%s'" %(lobby.id, "vote"))
+    q.execute("SELECT * FROM user_info WHERE Lobby_ID = '%s' and Game_Status = '%s'" % (lobby.id, "vote"))
     result = q.fetchall()
 
     if choice:
@@ -627,26 +661,31 @@ def vote_for_rulers(lobby, who, choice):
         player = Player(get_player(user))
         if choice:
             msg(player.user_id,
-                "@id%s (%s) "%(str(who.user_id), who.nickname)+player.language("voted_for"))
+                "@id%s (%s) " % (str(who.user_id), who.nickname) + player.language("voted_for"))
         else:
             msg(player.user_id,
-                "@id%s (%s) "%(str(who.user_id), who.nickname)+player.language("voted_against"))
+                "@id%s (%s) " % (str(who.user_id), who.nickname) + player.language("voted_against"))
 
     if len(result) == 1 or len(result) == 0:
         if lobby.votes >= 0:
             lobby.add_republican_state(0)
             lobby.update_status("take_actions")
+            lobby.update_votes(0)
             president = Player(get_player(lobby.current_president))
             cards_arr = take_actions(lobby, 3)
             lobby.update_cards_in_use(cards_arr)
-            msg_k(president.user_id, actions_keyboard(president.user_id, cards_arr), president.language("take_actions") +"\n\n"+ visual_acts(president, cards_arr))
+            msg_k(president.user_id, actions_keyboard(president.user_id, cards_arr),
+                  president.language("take_actions_p") + "\n\n" + visual_acts(president, cards_arr))
             president.update_game_status("take_actions")
 
         else:
             lobby.add_republican_state(1)
+            lobby.update_votes(0)
+            lobby.current_president = -1
+            lobby.current_chancellor = -1
+            lobby.update_rulers()
             game_turn(lobby)
 
-        lobby.update_votes(0)
 
 def take_actions(lobby, amount):
     cards_arr = []
@@ -669,10 +708,11 @@ def take_actions(lobby, amount):
     lobby.update_deck(deck)
     return cards_arr
 
+
 def setup_game(lobby):
     players = lobby.players
     random.shuffle(players)
-    roles = [all_roles[0]]* len(players)
+    roles = [all_roles[0]] * len(players)
     # Stupid method to set roles
     if 5 <= len(players) <= 6:
         roles[0] = all_roles[1]
@@ -722,16 +762,15 @@ def setup_game(lobby):
         roles.pop(0)
 
         text = player.language("game_start") + "\n" + player.language("role") + player.language(player.role)
-        msg(player.user_id, text)
+        msg_k(player.user_id, game_keyboard(player), text)
 
-    lobby.can_enter = False
     lobby.update_status("choose_president")
     lobby.update_players(players)
-    update_lobby(lobby.id, "Can_Enter", 0)
     game_turn(lobby)
 
+
 def game_turn(lobby):
-    q.execute("SELECT * FROM lobby_info WHERE Lobby_ID = '%s'"%lobby.id)
+    q.execute("SELECT * FROM lobby_info WHERE Lobby_ID = '%s'" % lobby.id)
     res = q.fetchall()
     if len(res) == 0:
         return
@@ -746,13 +785,14 @@ def game_turn(lobby):
 
     update_lobby(lobby.id, "Turn", turn)
 
-    #Если что, исправить:
+    # Если что, исправить:
     lobby.update_status("choose_president")
 
-    if lobby.ex_chancellor == -1 and lobby.ex_president == -1:
+    if lobby.current_president != -1 and lobby.current_chancellor != -1:
         lobby.change_rulers()
 
     choose_chancellor(players[turn], lobby, 0)
+
 
 def choose_chancellor(user_id, lobby, page):
     player = Player(get_player(user_id))
@@ -763,18 +803,24 @@ def choose_chancellor(user_id, lobby, page):
     msg_k(user_id, info.get('keyboard'), player.language("choose_chancellor") + info.get('text'))
 
 
-
 def all_players_in_lobby(lobby, page):
     players = lobby.players
-
+    #сомнения
     all_players = []
     text = "\n"
     for i in range(len(players)):
         player = get_player(players[i])
-        text += str(i+1) + ". @id%s (%s)\n"%(player[0][0], player[0][7])
-        all_players.append(player)
+        if player[0][7] == "":
+            us = vk.method("users.get", {"user_ids": player[0][0], "fields": "sex"})
 
-    return {'keyboard':list_keyboard(all_players, page, 7, "!choose"), 'text':text}
+            name = us[0].get('first_name') + " " + us[0].get('last_name')
+        else:
+            name = player[0][7]
+
+        text += str(i + 1) + ". @id%s (%s)\n" % (player[0][0], name)
+        all_players += player
+
+    return {'keyboard': list_keyboard(all_players, page, 7, "!choose"), 'text': text}
 
 
 def users_in_same_lobby(first_user_id, second_user_id):
@@ -799,7 +845,7 @@ def player_actions(player, request):
         if request == "!menu":
             player.update_status("")
             player.lobby_id = -1
-            q.execute("UPDATE user_info SET Lobby_ID = '-1' WHERE User_ID = '%s'"%(player.user_id))
+            q.execute("UPDATE user_info SET Lobby_ID = '-1' WHERE User_ID = '%s'" % (player.user_id))
             connection.commit()
             msg_k(player.user_id, main_keyboard(player), player.language("return"))
 
@@ -812,7 +858,8 @@ def player_actions(player, request):
                 player.update_status("setting_password")
 
             elif request == "!connect":
-                msg_k(user_id, one_keyboard(player.language('cancel'), 'negative', '!menu'), player.language("enter_lobby_id"))
+                msg_k(user_id, one_keyboard(player.language('cancel'), 'negative', '!menu'),
+                      player.language("enter_lobby_id"))
                 player.update_status("connecting_to_lobby")
 
         elif player.status == "setting_password":
@@ -834,7 +881,7 @@ def player_actions(player, request):
             conn = connect_to_lobby(player, request, "")
             if conn:
                 if conn == "password":
-                    player.update_status("connecting_to_lobby-%s"%request)
+                    player.update_status("connecting_to_lobby-%s" % request)
                     msg(player.user_id, player.language("password_req"))
                     return
 
@@ -849,23 +896,56 @@ def player_actions(player, request):
 
         elif player.status == "in_lobby":
             lobby = Lobby(get_lobby(player.lobby_id))
-            if request == "!leave":
+
+            if request == "!leave" and lobby.can_enter:
                 leave(player)
                 player_actions(player, "!menu")
+
             elif request == "!start":
                 if lobby.host == player.user_id:
                     if 5 <= len(lobby.players) <= 10:
+                        update_lobby(lobby.id, "Can_Enter", 0)
+                        lobby.can_enter = 0
                         setup_game(lobby)
                     else:
-                        msg(player.user_id, player.language("not_enough_players") + "\n%s"%(len(lobby.players)))
+                        msg(player.user_id, player.language("not_enough_players") + "%s" % (len(lobby.players)))
+                        return
                 else:
                     msg(player.user_id, player.language("not_host"))
+                    return
+
+            elif request == "!players":
+                info = all_players_in_lobby(lobby, 0)
+                msg(player.user_id, player.language("list_players") + "\n" + info.get("text"))
+                return
     else:
+        # If player is in game:
+
         lobby = Lobby(get_lobby(player.lobby_id))
+        # In case of bug, will return to the menu
         if request == "!bug" and lobby.host == player.user_id:
             finish_game(lobby, "republican")
             return
 
+        if request == "!players":
+            info = all_players_in_lobby(lobby, 0)
+            msg(player.user_id, player.language("list_players") + "\n" + info.get("text"))
+            return
+
+        elif request == "!table":
+            table = get_table(lobby)
+
+            msg(player.user_id, "%s"
+                                "\n%s"
+                                "\n\n"
+                                "%s"
+                                "\n%s"
+                                "\n%s" % (
+                    player.language("imperial_table"), table[0], player.language("republican_table"), table[1],
+                    table[2]))
+            return
+
+        # Taking acts
         if lobby.status == "act" and player.user_id == lobby.current_president:
             if request.startswith("!choose "):
                 request = request.replace("!choose ", "")
@@ -881,7 +961,7 @@ def player_actions(player, request):
 
                         victim = Player(get_player(request))
                         if player.game_status == "kill":
-                            msg_k(victim.user_id, main_keyboard(victim), victim.language("death"))
+                            msg_k(victim.user_id, one_keyboard(victim.language("start"), "positive", "!"), victim.language("death"))
                             if victim.role == "sith":
                                 finish_game(lobby, "republican")
                             else:
@@ -892,14 +972,14 @@ def player_actions(player, request):
                             if victim.role == "sith":
                                 victim.role = "imper"
 
-                            msg(player.user_id, player.language("checked") + "\n@id%s (%s) "%(victim.user_id, victim.nickname) + player.language(victim.role))
+                            msg(player.user_id, player.language("checked") + "\n@id%s (%s) " % (
+                                victim.user_id, victim.nickname) + player.language(victim.role))
                             game_turn(lobby)
 
                         elif player.game_status == "elect":
                             lobby.update_status("choose_chancellor")
                             lobby.change_rulers()
                             choose_chancellor(victim.user_id, lobby, 0)
-
 
                 else:
                     msg(player.user_id, player.language("incorrect_number"))
@@ -927,7 +1007,8 @@ def player_actions(player, request):
                     return
 
                 if users_in_same_lobby(player.user_id, int(request)):
-                    if not can_chancellor(get_player(int(request)), lobby) or int(request) == int(player.user_id):
+                    #дописать: or int(request) == int(player.user_id)
+                    if not can_chancellor(get_player(int(request)), lobby):
                         msg(player.user_id, player.language("wrong_user"))
                     else:
                         player.update_game_status("")
@@ -940,6 +1021,47 @@ def player_actions(player, request):
                     choose_chancellor(player.user_id, lobby, int(page))
 
         elif player.game_status == "take_actions":
+            if lobby.imperial_table >= 4:
+                chancellor = Player(get_player(lobby.current_chancellor))
+                if chancellor.role == "sith":
+                    finish_game(lobby, "imperial")
+                    return
+                else:
+                    msg_all(lobby, "not_sith", "@id%s (%s)"%(chancellor.user_id, chancellor.nickname))
+
+            if request == "!veto":
+                if lobby.imperial_table == 5:
+                    if lobby.status == "veto":
+                        if player.user_id == lobby.current_president:
+                            lobby.current_president = -1
+                            lobby.current_chancellor = -1
+                            lobby.update_rulers()
+                            lobby.add_republican_state(1)
+                            game_turn(lobby)
+
+                    if player.user_id == lobby.current_chancellor and lobby.status == "veto_can":
+                        lobby.update_status("veto")
+                        player.update_game_status("")
+                        president = Player(get_player(lobby.current_president))
+                        msg_k(lobby.current_president, inline_two(president.language("veto"), "positive", "!veto", president.language("no"), "negative", "!no"),
+                              president.language("veto_ask"))
+                return
+
+            elif request == "!no":
+                if lobby.status == "veto":
+                    cards_in_use = lobby.cards_in_use
+                    disc = lobby.discard
+                    disc = disc + [cards_in_use[0]]
+                    lobby.update_discard(disc)
+                    cards_in_use.pop(0)
+                    lobby.update_cards_in_use(cards_in_use)
+                    add_to_table(lobby, cards_in_use[0])
+                    game_turn(lobby)
+                    return
+
+
+
+
             if request.startswith("!choose "):
                 request = request.replace("!choose ", "")
                 if request.isnumeric():
@@ -957,13 +1079,15 @@ def player_actions(player, request):
                             cards_in_use.pop(request)
                             lobby.update_cards_in_use(cards_in_use)
 
-                            msg_k(chancellor.user_id, actions_keyboard(chancellor.user_id, cards_in_use), chancellor.language("take_actions") + "\n\n" + visual_acts(chancellor, cards_in_use))
+
+                            msg_k(chancellor.user_id, actions_keyboard(chancellor.user_id, cards_in_use),
+                                  chancellor.language("take_actions_c") + "\n\n" + visual_acts(chancellor, cards_in_use))
                             chancellor.update_game_status("take_actions")
 
                         elif lobby.current_chancellor == player.user_id:
-                            disc = disc + [cards_in_use[len(cards_in_use)-request - 1]]
+                            disc = disc + [cards_in_use[len(cards_in_use) - request - 1]]
                             lobby.update_discard(disc)
-                            cards_in_use.pop(len(cards_in_use)-request - 1)
+                            cards_in_use.pop(len(cards_in_use) - request - 1)
                             lobby.update_cards_in_use(cards_in_use)
 
                             chancellor.update_game_status("")
@@ -975,22 +1099,25 @@ def player_actions(player, request):
                                 info = all_players_in_lobby(lobby, 0)
 
                                 if gs == "kill":
-                                    msg_k(player.user_id, info.get('keyboard'), player.language("kill") + info.get('text'))
+                                    msg_k(president.user_id, info.get('keyboard'),
+                                          president.language("kill") + info.get('text'))
+
                                 elif gs == "look":
                                     look_cards = take_actions(lobby, 3)
                                     lobby.update_deck(look_cards + lobby.deck)
                                     lobby.update_cards_in_use([])
 
-                                    msg(player.user_id, player.language("look") + "\n\n" + visual_acts(player, look_cards))
+                                    msg(president.user_id,
+                                        president.language("look") + "\n\n" + visual_acts(president, look_cards))
                                     game_turn(lobby)
 
                                 elif gs == "check":
-                                    msg_k(player.user_id, info.get('keyboard'),
-                                          player.language("check") + info.get('text'))
+                                    msg_k(president.user_id, info.get('keyboard'),
+                                          president.language("check") + info.get('text'))
 
                                 elif gs == "elect":
-                                    msg_k(player.user_id, info.get('keyboard'),
-                                          player.language("elect") + info.get('text'))
+                                    msg_k(president.user_id, info.get('keyboard'),
+                                          president.language("elect") + info.get('text'))
 
                             else:
                                 game_turn(lobby)
@@ -1000,13 +1127,20 @@ def player_actions(player, request):
                     msg(player.user_id, player.language("must_be_numeric"))
 
 
+def msg_all(lobby, text, addition):
+    players = lobby.players
+    for i in range(len(players)):
+        player = Player(get_player(players[i]))
+        msg(player.user_id, player.language(text) + "\n" + addition)
+
+
 def visual_acts(player, acts_arr):
     text = ""
     for i in range(len(acts_arr)):
         if int(acts_arr[i]):
-            text += str(i+1) + ". 📘 " + player.language("rep") + "\n"
+            text += str(i + 1) + ". 📘 " + player.language("rep") + "\n"
         else:
-            text += str(i+1) + ". 📕 " + player.language("imp") + "\n"
+            text += str(i + 1) + ". 📕 " + player.language("imp") + "\n"
 
     return text
 
@@ -1014,30 +1148,31 @@ def visual_acts(player, acts_arr):
 def add_to_table(lobby, choice):
     if int(choice):
         lobby.republican_table += 1
-        q.execute("UPDATE lobby_info SET In_Place_Lib = '%s' WHERE Lobby_ID = '%s'" % (lobby.republican_table, lobby.id))
+        q.execute(
+            "UPDATE lobby_info SET In_Place_Lib = '%s' WHERE Lobby_ID = '%s'" % (lobby.republican_table, lobby.id))
         act = "republican"
         connection.commit()
     else:
         lobby.imperial_table += 1
         q.execute("UPDATE lobby_info SET In_Place_Imp = '%s' WHERE Lobby_ID = '%s'" % (lobby.imperial_table, lobby.id))
         act = "imperial"
-        #проверяем, если есть дополнительные правила
+        # проверяем, если есть дополнительные правила
         connection.commit()
         take_additions(lobby)
-
 
     users = lobby.players
 
     table = get_table(lobby)
     for user in users:
         player = Player(get_player(user))
-        msg(player.user_id, player.language("added_"+act) +
+        msg(player.user_id, player.language("added_" + act) +
             "\n______________\n\n%s"
             "\n%s"
             "\n\n"
             "%s"
             "\n%s"
-            "\n%s"%(player.language("imperial_table"), table[0], player.language("republican_table"), table[1], table[2]))
+            "\n%s" % (
+                player.language("imperial_table"), table[0], player.language("republican_table"), table[1], table[2]))
 
     if lobby.republican_table == liberal:
         finish_game(lobby, "republican")
@@ -1047,12 +1182,13 @@ def add_to_table(lobby, choice):
         finish_game(lobby, "imperial")
         return
 
+
 def take_additions(lobby):
     players = lobby.players
     players_amount = len(players)
     imperial_time = lobby.imperial_table
 
-    #x: 0 || check: 2 || elect: 3 || kill: 4 || kill+veto: 5 || look: 6
+    # x: 0 || check: 2 || elect: 3 || kill: 4 || kill+veto: 5 || look: 6
 
     five_six = [0, 0, 6, 4, 5]
     seven_eight = [0, 2, 3, 4, 5]
@@ -1061,10 +1197,10 @@ def take_additions(lobby):
 
     action = 0
     if 5 <= players_amount <= 6:
-        action = five_six[imperial_time-1]
+        action = five_six[imperial_time - 1]
     else:
         if 7 <= players_amount <= 8:
-            action = seven_eight[imperial_time-1]
+            action = seven_eight[imperial_time - 1]
         elif 9 <= players_amount <= 10:
             action = nine_ten[imperial_time - 1]
 
@@ -1088,6 +1224,7 @@ def take_additions(lobby):
             player.update_game_status("look")
             return False
     return True
+
 
 def get_table(lobby):
     gun = '💣'
@@ -1125,12 +1262,12 @@ def get_table(lobby):
             imper[i] = '📕'
         imper_table += imper[i] + " "
 
-    repub_table = '📘 ' * lobby.republican_table + '▫ ' * (liberal-lobby.republican_table-1)
+    repub_table = '📘 ' * lobby.republican_table + '▫ ' * (liberal - lobby.republican_table - 1)
 
     if lobby.republican_table != liberal:
         repub_table += '🕊'
 
-    rep_state = '🔸 ' * (lobby.republican_state + 1) + '🔹 ' * (lib_choice-lobby.republican_state)
+    rep_state = '🔸 ' * (lobby.republican_state + 1) + '🔹 ' * (lib_choice - lobby.republican_state)
 
     return [imper_table, repub_table, rep_state]
 
@@ -1140,20 +1277,17 @@ def finish_game(lobby, winners):
 
     for user in players:
         player = Player(get_player(user))
-        leave(player)
         clear_user(player)
-        msg_k(player.user_id, main_keyboard(player), player.language("finished_"+winners))
+        msg_k(player.user_id, one_keyboard(player.language("start"), "positive", "!"), player.language("finished_" + winners))
 
     lobby.update_players([])
 
-def clear_user(player):
-    player.status = ""
-    player.lobby_id = -1
-    player.role = ""
-    player.cards_in_hand = ""
-    player.nickname = ""
 
-    player.game_update()
+def clear_user(player):
+    leave(player)
+    q.execute("DELETE FROM user_info WHERE User_ID = '%s'" % player.user_id)
+    connection.commit()
+
 
 def can_chancellor(user_info, lobby):
     if len(user_info) > 0:
@@ -1172,6 +1306,7 @@ def can_chancellor(user_info, lobby):
 def get_lobby(lobby_id):
     q.execute("SELECT * FROM lobby_info WHERE Lobby_ID = '%s'" % (lobby_id))
     return q.fetchall()
+
 
 def main_keyboard(player):
     lang = player.lang
@@ -1196,7 +1331,6 @@ while True:
                 if payload is not None:
                     request = payload.replace("\"", "")
 
-                print(request)
 
                 connection = psycopg2.connect(DATABASE_URL, sslmode='require')
                 #connection = sql.connect("some.sqlite", check_same_thread=False)
@@ -1207,7 +1341,7 @@ while True:
                 if len(user_data) == 0:
                     q.execute("INSERT INTO user_info "
                               "(User_ID, Lobby_ID, Role, Cards, Status, Game_Status, Language, Nickname) VALUES ('%s', '%s','%s', '%s', '%s', '%s', '%s', '%s')" %
-                              (user_id, -1, -1, "", "", "", "RU", ""))
+                              (user_id, -1, "", "", "", "", "RU", ""))
                     connection.commit()
 
                     q.execute("SELECT * FROM user_info WHERE User_ID = '%s'" % (user_id))
@@ -1215,6 +1349,10 @@ while True:
                     msg_k(user_id, main_keyboard(Player(user_data)), "Добро пожаловать!")
 
                 else:
+                    print(user_data, ":> ", request)
+
+                    #action = threading.Thread(target=player_actions, args=(Player(user_data), request))
+                    #action.start()
                     player_actions(Player(user_data), request)
 
 
