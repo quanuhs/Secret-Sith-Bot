@@ -677,6 +677,7 @@ def vote_for_rulers(lobby, who, choice):
             msg_k(president.user_id, actions_keyboard(president.user_id, cards_arr),
                   president.language("take_actions_p") + "\n\n" + visual_acts(president, cards_arr))
             president.update_game_status("take_actions")
+            msg_all(president.user_id, lobby, "president_choice", "")
 
         else:
             lobby.add_republican_state(1)
@@ -684,6 +685,7 @@ def vote_for_rulers(lobby, who, choice):
             lobby.current_president = -1
             lobby.current_chancellor = -1
             lobby.update_rulers()
+            msg_all(0, lobby, "election_failed", "")
             game_turn(lobby)
 
 
@@ -710,6 +712,7 @@ def take_actions(lobby, amount):
 
 
 def setup_game(lobby):
+    lobby = Lobby(get_lobby(lobby.id))
     players = lobby.players
     random.shuffle(players)
     roles = [all_roles[0]] * len(players)
@@ -770,6 +773,7 @@ def setup_game(lobby):
 
 
 def game_turn(lobby):
+    lobby = Lobby(get_lobby(lobby.id))
     q.execute("SELECT * FROM lobby_info WHERE Lobby_ID = '%s'" % lobby.id)
     res = q.fetchall()
     if len(res) == 0:
@@ -801,23 +805,22 @@ def choose_chancellor(user_id, lobby, page):
 
     info = all_players_in_lobby(lobby, page)
     msg_k(user_id, info.get('keyboard'), player.language("choose_chancellor") + info.get('text'))
+    msg_all(player.user_id, lobby, "president_choose_chancellor", "@id%s (%s)"%(player.user_id, player.nickname))
 
 
 def all_players_in_lobby(lobby, page):
+    lobby = Lobby(get_lobby(lobby.id))
     players = lobby.players
-    #сомнения
+
     all_players = []
     text = "\n"
     for i in range(len(players)):
         player = get_player(players[i])
-        if player[0][7] == "":
-            us = vk.method("users.get", {"user_ids": player[0][0], "fields": "sex"})
-
-            name = us[0].get('first_name') + " " + us[0].get('last_name')
-        else:
-            name = player[0][7]
-
-        text += str(i + 1) + ". @id%s (%s)\n" % (player[0][0], name)
+        vote = ""
+        if player[0][4] == "vote":
+            vote = "| ❌"
+        us = vk.method("users.get", {"user_ids": player[0][0], "fields": "sex"})
+        text += str(i + 1) + ". @id%s (%s)\n" % (player[0][0], player[0][7] + " %s %s %s" % (us[0].get('first_name'), us[0].get('last_name'), vote))
         all_players += player
 
     return {'keyboard': list_keyboard(all_players, page, 7, "!choose"), 'text': text}
@@ -900,6 +903,7 @@ def player_actions(player, request):
             if request == "!leave" and lobby.can_enter:
                 leave(player)
                 player_actions(player, "!menu")
+                lobby = Lobby(get_lobby(lobby.id))
 
             elif request == "!start":
                 if lobby.host == player.user_id:
@@ -966,7 +970,9 @@ def player_actions(player, request):
                                 finish_game(lobby, "republican")
                             else:
                                 clear_user(victim)
-                                game_turn(lobby)
+
+                            lobby = Lobby(get_lobby(lobby.id))
+                            game_turn(lobby)
 
                         elif player.game_status == "check":
                             if victim.role == "sith":
@@ -1007,7 +1013,7 @@ def player_actions(player, request):
                     return
 
                 if users_in_same_lobby(player.user_id, int(request)):
-                    #дописать: or int(request) == int(player.user_id)
+
                     if not can_chancellor(get_player(int(request)), lobby) or int(request) == int(player.user_id):
                         msg(player.user_id, player.language("wrong_user"))
                     else:
@@ -1021,13 +1027,14 @@ def player_actions(player, request):
                     choose_chancellor(player.user_id, lobby, int(page))
 
         elif player.game_status == "take_actions":
-            if lobby.imperial_table >= 4:
+
+            if lobby.imperial_table >= 4 and player.user_id == lobby.current_president:
                 chancellor = Player(get_player(lobby.current_chancellor))
                 if chancellor.role == "sith":
                     finish_game(lobby, "imperial")
                     return
                 else:
-                    msg_all(lobby, "not_sith", "@id%s (%s)"%(chancellor.user_id, chancellor.nickname))
+                    msg_all(0, lobby, "not_sith", "@id%s (%s)"%(chancellor.user_id, chancellor.nickname))
 
             if request == "!veto":
                 if lobby.imperial_table == 5:
@@ -1059,9 +1066,6 @@ def player_actions(player, request):
                     game_turn(lobby)
                     return
 
-
-
-
             if request.startswith("!choose "):
                 request = request.replace("!choose ", "")
                 if request.isnumeric():
@@ -1079,7 +1083,7 @@ def player_actions(player, request):
                             cards_in_use.pop(request)
                             lobby.update_cards_in_use(cards_in_use)
 
-
+                            msg_all(chancellor.user_id, lobby, "chancellor_choice", "")
                             msg_k(chancellor.user_id, actions_keyboard(chancellor.user_id, cards_in_use),
                                   chancellor.language("take_actions_c") + "\n\n" + visual_acts(chancellor, cards_in_use))
                             chancellor.update_game_status("take_actions")
@@ -1127,11 +1131,12 @@ def player_actions(player, request):
                     msg(player.user_id, player.language("must_be_numeric"))
 
 
-def msg_all(lobby, text, addition):
+def msg_all(but_user, lobby, text, addition):
     players = lobby.players
     for i in range(len(players)):
         player = Player(get_player(players[i]))
-        msg(player.user_id, player.language(text) + "\n" + addition)
+        if player.user_id != but_user:
+            msg(player.user_id, player.language(text) + "\n" + addition)
 
 
 def visual_acts(player, acts_arr):
