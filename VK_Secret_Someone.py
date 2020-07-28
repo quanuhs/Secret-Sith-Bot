@@ -509,7 +509,7 @@ def connect_to_lobby(player, lobby_id, password):
                         msg(user.user_id,
                             "@id%s %s %s" % (player.user_id, user.language("someone_connected"), str(len(players_in))))
                     else:
-                        msg_k(user.user_id, lobby_keyboard(user), user.language("in_lobby"))
+                        msg_k(user.user_id, lobby_keyboard(user), user.language("in_lobby") + str(lobby_id))
 
                 return True
 
