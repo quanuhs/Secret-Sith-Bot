@@ -640,7 +640,7 @@ def actions_keyboard(user_id, cards_list):
 
         if lobby.imperial_table == 5 and user_id == lobby.current_chancellor and abs(same_amount) == 2:
             lobby.update_status("can_veto")
-            buttons.append(get_button(player.language("veto"), "positive", "!veto"))
+            buttons.append([get_button(player.language("veto"), "positive", "!veto")])
 
     return create_inlinekeyboard(buttons)
 
@@ -752,6 +752,10 @@ def setup_game(lobby):
     random.shuffle(male_names)
     random.shuffle(female_names)
 
+    sent_to = []
+    imp_names = ""
+    sith_name = ""
+
     for user in players:
         player = Player(get_player(user))
         player.status = "in_game"
@@ -770,11 +774,26 @@ def setup_game(lobby):
             player.nickname = male_names[0]
             male_names.pop(0)
 
+
+        if roles[0] == "imp" or roles[0] == "sith":
+            sent_to.append([player.user_id, roles[0]])
+            if roles[0] == "imp":
+                imp_names += "@id%s (%s) \n" % (player.user_id, player.nickname)
+            elif roles[0] == "sith":
+                sith_name = "@id%s (%s) " % (player.user_id, player.nickname)
+
         player.game_update()
         roles.pop(0)
 
         text = player.language("game_start") + "\n" + player.language("role") + player.language(player.role)
         msg_k(player.user_id, game_keyboard(player), text)
+
+    for i in range(len(sent_to)):
+        if len(sent_to) > 2:
+            if sent_to[i][1] != "sith":
+                msg(sent_to[i][0], imp_names + "\n>> " + sith_name)
+        else:
+            msg(sent_to[i][0], imp_names + "\n>> " + sith_name)
 
     lobby.update_status("choose_president")
     lobby.update_players(players)
@@ -826,10 +845,12 @@ def all_players_in_lobby(lobby, page):
     for i in range(len(players)):
         player = get_player(players[i])
         vote = ""
-        if player[0][4] == "vote":
+
+        if player[i][4] == "vote":
             vote = "| ❌"
+
         us = vk.method("users.get", {"user_ids": player[0][0], "fields": "sex"})
-        text += str(i + 1) + ". @id%s (%s)\n" % (player[0][0], player[0][7] + " %s %s %s" % (us[0].get('first_name'), us[0].get('last_name'), vote))
+        text += str(i + 1) + ". @id%s (%s) -" % (player[0][0], player[0][7] + " %s %s %s\n" % (us[0].get('first_name'), us[0].get('last_name'), vote))
         all_players += player
 
     return {'keyboard': list_keyboard(all_players, page, 7, "!choose"), 'text': text}
@@ -937,7 +958,7 @@ def player_actions(player, request):
         lobby = Lobby(get_lobby(player.lobby_id))
         # In case of bug, will return to the menu
         if request == "!bug" and lobby.host == player.user_id:
-            finish_game(lobby, "republican")
+            finish_game(lobby, "republic")
             return
 
         if request == "!players":
@@ -976,7 +997,7 @@ def player_actions(player, request):
                         if player.game_status == "kill":
                             msg_k(victim.user_id, one_keyboard(victim.language("start"), "positive", "!"), victim.language("death"))
                             if victim.role == "sith":
-                                finish_game(lobby, "republican")
+                                finish_game(lobby, "republic")
                             else:
                                 clear_user(victim)
 
@@ -1139,7 +1160,7 @@ def msg_all(but_user, lobby, text, addition):
     for i in range(len(players)):
         player = Player(get_player(players[i]))
         if player.user_id != but_user:
-            msg(player.user_id, player.language(text) + "\n" + addition)
+            msg(player.user_id, player.language(text) + " " + addition)
 
 
 def visual_acts(player, acts_arr):
@@ -1183,7 +1204,7 @@ def add_to_table(lobby, choice):
                 player.language("imperial_table"), table[0], player.language("republican_table"), table[1], table[2]))
 
     if lobby.republican_table == liberal:
-        finish_game(lobby, "republican")
+        finish_game(lobby, "republic")
         return
 
     if lobby.imperial_table == imperial:
@@ -1200,17 +1221,19 @@ def take_additions(lobby):
 
     five_six = [0, 0, 6, 4, 5]
     seven_eight = [0, 2, 3, 4, 5]
-    nine_ten = seven_eight
-    nine_ten[0] = 2
+    nine_ten = [0, 2, 3, 4, 5]
 
     action = 0
-    if 5 <= players_amount <= 6:
-        action = five_six[imperial_time - 1]
+    if imperial_time != 5:
+        if 5 <= players_amount <= 6:
+            action = five_six[imperial_time - 1]
+        else:
+            if 7 <= players_amount <= 8:
+                action = seven_eight[imperial_time - 1]
+            elif 9 <= players_amount <= 10:
+                action = nine_ten[imperial_time - 1]
     else:
-        if 7 <= players_amount <= 8:
-            action = seven_eight[imperial_time - 1]
-        elif 9 <= players_amount <= 10:
-            action = nine_ten[imperial_time - 1]
+        action = 5
 
     if action:
         player = Player(get_player(lobby.current_president))
@@ -1230,7 +1253,6 @@ def take_additions(lobby):
         elif action == 5:
             player.update_game_status("kill")
             msg_all(player.user_id, lobby, "kill+v_p", "")
-            print("veto!")
             return False
         elif action == 6:
             player.update_game_status("look")
