@@ -671,6 +671,15 @@ def vote_for_rulers(lobby, who, choice):
             lobby.add_republican_state(0)
             lobby.update_status("take_actions")
             lobby.update_votes(0)
+
+            if lobby.imperial_table >= 4:
+                chancellor = Player(get_player(lobby.current_chancellor))
+                if chancellor.role == "sith":
+                    finish_game(lobby, "imperial")
+                    return
+                else:
+                    msg_all(0, lobby, "not_sith", "@id%s (%s)" % (chancellor.user_id, chancellor.nickname))
+
             president = Player(get_player(lobby.current_president))
             cards_arr = take_actions(lobby, 3)
             lobby.update_cards_in_use(cards_arr)
@@ -1028,13 +1037,7 @@ def player_actions(player, request):
 
         elif player.game_status == "take_actions":
 
-            if lobby.imperial_table >= 4 and player.user_id == lobby.current_president:
-                chancellor = Player(get_player(lobby.current_chancellor))
-                if chancellor.role == "sith":
-                    finish_game(lobby, "imperial")
-                    return
-                else:
-                    msg_all(0, lobby, "not_sith", "@id%s (%s)"%(chancellor.user_id, chancellor.nickname))
+
 
             if request == "!veto":
                 if lobby.imperial_table == 5:
@@ -1214,19 +1217,24 @@ def take_additions(lobby):
         lobby.update_status("act")
         if action == 2:
             player.update_game_status("check")
+            msg_all(player.user_id, lobby, "check_p", "")
             return False
         elif action == 3:
             player.update_game_status("elect")
+            msg_all(player.user_id, lobby, "elect_p", "")
             return False
         elif action == 4:
             player.update_game_status("kill")
+            msg_all(player.user_id, lobby, "kill_p", "")
             return False
         elif action == 5:
             player.update_game_status("kill")
+            msg_all(player.user_id, lobby, "kill+v_p", "")
             print("veto!")
             return False
         elif action == 6:
             player.update_game_status("look")
+            msg_all(player.user_id, lobby, "look_p", "")
             return False
     return True
 
