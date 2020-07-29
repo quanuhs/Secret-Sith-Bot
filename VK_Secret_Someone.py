@@ -850,7 +850,7 @@ def all_players_in_lobby(lobby, page):
             vote = "| ❌"
 
         us = vk.method("users.get", {"user_ids": player[0][0], "fields": "sex"})
-        text += str(i + 1) + ". @id%s (%s) - %s\n" % (player[0][0], player[0][7], ("%s %s %s" % (us[0].get('first_name'), us[0].get('last_name'), vote)))
+        text += str(i + 1) + ". @id%s (%s) %s\n" % (player[0][0], player[0][7] + "- %s %s" % (us[0].get('first_name'), us[0].get('last_name')), vote)
         all_players += player
 
     return {'keyboard': list_keyboard(all_players, page, 7, "!choose"), 'text': text}
