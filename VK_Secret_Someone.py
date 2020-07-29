@@ -846,7 +846,7 @@ def all_players_in_lobby(lobby, page):
         player = get_player(players[i])
         vote = ""
 
-        if player[i][4] == "vote":
+        if player[0][4] == "vote":
             vote = "| ❌"
 
         us = vk.method("users.get", {"user_ids": player[0][0], "fields": "sex"})
