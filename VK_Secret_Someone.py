@@ -935,6 +935,7 @@ def player_actions(player, request):
                 player.update_status("")
                 msg_k(player, main_keyboard(player), player.language("return"))
                 return
+
             else:
                 if not request.isnumeric():
                     msg(player.user_id, player.language("wrong_lobby_id"))
@@ -988,9 +989,18 @@ def player_actions(player, request):
 
         lobby = Lobby(get_lobby(player.lobby_id))
         # In case of bug, will return to the menu
-        if request == "!bug" and lobby.host == player.user_id:
-            finish_game(lobby, "republic")
-            return
+        if lobby.host == player.user_id:
+            if request == "!bug":
+                finish_game(lobby, "republic")
+                return
+
+            elif request == "!force":
+                players = lobby.players
+                for user in players:
+                    msg(user.user_id, user.language("host_force"))
+                    if user.game_status == "vote":
+                        vote_for_rulers(lobby, user, random.randint(0, 1))
+
 
         if request == "!players":
             info = all_players_in_lobby(lobby, 0)
@@ -1026,7 +1036,7 @@ def player_actions(player, request):
 
                         victim = Player(get_player(request))
                         if player.game_status == "kill":
-                            msg_k(victim.user_id, one_keyboard(victim.language("start"), "positive", "!"), victim.language("death"))
+                            msg_k(victim.user_id, one_keyboard(victim.language("start"), "positive", "!menu"), victim.language("death"))
                             if victim.role == "sith":
                                 finish_game(lobby, "republic")
                             else:
