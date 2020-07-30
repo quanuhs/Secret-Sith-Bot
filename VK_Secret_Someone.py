@@ -844,15 +844,17 @@ def choose_chancellor(user_id, lobby, page):
 
 
 def all_players_in_lobby(lobby, page):
-    lobby = Lobby(get_lobby(lobby.id))
-    players = lobby.players
 
-    all_players = []
 
     if lobby.status == "vote_results":
         vote_results = True
     else:
         vote_results = False
+
+    lobby = Lobby(get_lobby(lobby.id))
+    players = lobby.players
+
+    all_players = []
 
     text = "\n"
     for i in range(len(players)):
