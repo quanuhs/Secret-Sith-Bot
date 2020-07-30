@@ -874,6 +874,14 @@ def player_actions(player, request):
     original_requset = request
     request = request.lower()
 
+    if request == "!language":
+        msg(player.user_id, player.language("not_done"))
+        return
+
+    elif request == "!rules":
+        msg(player.user_id, player.language("rules"))
+        return
+
     if player.status != "in_game":
         if request == "!menu":
             player.update_status("")
@@ -931,9 +939,11 @@ def player_actions(player, request):
             lobby = Lobby(get_lobby(player.lobby_id))
 
             if request == "!leave" and lobby.can_enter:
-                leave(player)
-                player_actions(player, "!menu")
-                lobby = Lobby(get_lobby(lobby.id))
+                if player.user_id == lobby.host:
+                    finish_game(lobby, "host")
+                else:
+                    clear_user(player)
+                return
 
             elif request == "!start":
                 if lobby.host == player.user_id:
@@ -1266,7 +1276,6 @@ def get_table(lobby):
     check = '🔎'
     look = '👁‍🗨'
     next_president = '👥'
-    veto = '⚖'
 
     # Для 5-6: [x, x, посмотреть 3 верхнии карты, убить игрок, убить игрока + право веты, gg] 1 имперец, 1 ситх. (знают)
     # 7-8: [x, проверить карту, выбрать следующего, убить игрок, убить игрока + право веты, gg] 2 имперца 1 ситх (не знают)
