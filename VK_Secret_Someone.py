@@ -547,12 +547,18 @@ def create_lobby(player, password):
 def leave(player):
     lobby = Lobby(get_lobby(player.lobby_id))
     players_list = lobby.players
+
+    if lobby.host == player.user_id:
+        notify = False
+    else:
+        notify = True
+        
     index = 0
     # Go trow all users, check and notify. Delete the user at last.
     for i in range(len(lobby.players)):
         if int(players_list[i]) == player.user_id:
             index = i
-        else:
+        elif notify:
             user = Player(get_player(int(players_list[i])))
             msg(user.user_id, "@id" + str(player.user_id) + user.language("someone_left") +
                 user.language("someone_left_amount") + str(len(lobby.players) - 1))
