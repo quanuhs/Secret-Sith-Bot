@@ -657,22 +657,22 @@ def vote_for_rulers(lobby, who, choice):
 
     if choice:
         lobby.update_votes(lobby.votes + 1)
+        who.update_game_status("vote_for")
     else:
         lobby.update_votes(lobby.votes - 1)
+        who.update_game_status("vote_against")
 
     players = lobby.players
-    who.update_game_status("")
 
     for user in players:
-        player = Player(get_player(user))
-        if choice:
-            msg(player.user_id,
-                "@id%s (%s) " % (str(who.user_id), who.nickname) + player.language("voted_for"))
-        else:
-            msg(player.user_id,
-                "@id%s (%s) " % (str(who.user_id), who.nickname) + player.language("voted_against"))
+        msg(user.user_id, "@id%s (%s) %s" %(who.user_id, who.nickname, user.language("voted")))
 
     if len(result) == 1 or len(result) == 0:
+        lobby.status = "vote_results"
+
+        info = all_players_in_lobby(lobby, 0)
+        msg_all(0, lobby, "list_players", " (" + str(lobby.id) + "): \n" + info.get("text"))
+
         if lobby.votes >= 0:
             lobby.add_republican_state(0)
             lobby.update_status("take_actions")
@@ -847,16 +847,31 @@ def all_players_in_lobby(lobby, page):
     players = lobby.players
 
     all_players = []
+
+    if lobby.status == "vote_results":
+        vote_results = True
+    else:
+        vote_results = False
+
     text = "\n"
     for i in range(len(players)):
         player = get_player(players[i])
         vote = ""
 
-        if player[0][4] == "vote":
-            vote = "| ❌"
+        if vote_results:
+            if player[0][5] == "voted_for":
+                vote = "| 👍"
+            else:
+                vote = "| 👎"
+
+        else:
+            if player[0][5] == "vote":
+                vote = "| ❌"
+
+
 
         us = vk.method("users.get", {"user_ids": player[0][0], "fields": "sex"})
-        text += str(i + 1) + ". @id%s (%s) %s\n" % (player[0][0], player[0][7] + "- %s %s" % (us[0].get('first_name'), us[0].get('last_name')), vote)
+        text += str(i + 1) + ". %s - @id%s (%s) %s\n" % (player[0][7], player[0][0], "%s %s" % (us[0].get('first_name'), us[0].get('last_name')), vote)
         all_players += player
 
     return {'keyboard': list_keyboard(all_players, page, 7, "!choose"), 'text': text}
