@@ -950,7 +950,7 @@ def player_actions(player, request):
 
             elif request == "!players":
                 info = all_players_in_lobby(lobby, 0)
-                msg(player.user_id, player.language("list_players") + "\n" + info.get("text"))
+                msg(player.user_id, player.language("list_players") + " ("+ str(lobby.id) + "): \n" + info.get("text"))
                 return
     else:
         # If player is in game:
