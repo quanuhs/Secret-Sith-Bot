@@ -858,23 +858,25 @@ def all_players_in_lobby(lobby, page):
 
     text = "\n"
     for i in range(len(players)):
-        player = get_player(players[i])
+        player = Player(get_player(players[i]))
         vote = ""
 
         if vote_results:
-            if player[0][5] == "voted_for":
+            if player.game_status == "voted_for":
                 vote = "| 👍"
             else:
                 vote = "| 👎"
 
+            player.update_game_status("")
+
         else:
-            if player[0][5] == "vote":
+            if player.game_status == "vote":
                 vote = "| ❌"
 
 
 
-        us = vk.method("users.get", {"user_ids": player[0][0], "fields": "sex"})
-        text += str(i + 1) + ". %s - @id%s (%s) %s\n" % (player[0][7], player[0][0], "%s %s" % (us[0].get('first_name'), us[0].get('last_name')), vote)
+        us = vk.method("users.get", {"user_ids": player.user_id, "fields": "sex"})
+        text += str(i + 1) + ". %s - @id%s (%s) %s\n" % (player.nickname, player.user_id, "%s %s" % (us[0].get('first_name'), us[0].get('last_name')), vote)
         all_players += player
 
     return {'keyboard': list_keyboard(all_players, page, 7, "!choose"), 'text': text}
