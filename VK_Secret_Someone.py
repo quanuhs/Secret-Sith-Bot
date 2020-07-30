@@ -885,7 +885,7 @@ def player_actions(player, request):
         return
 
     elif request == "!rules":
-        msg(player.user_id, player.language("rules"))
+        msg(player.user_id, player.language("get_rules"))
         return
 
     if player.status != "in_game":
