@@ -845,7 +845,6 @@ def choose_chancellor(user_id, lobby, page):
 
 def all_players_in_lobby(lobby, page):
 
-
     if lobby.status == "vote_results":
         vote_results = True
     else:
@@ -857,8 +856,10 @@ def all_players_in_lobby(lobby, page):
     all_players = []
 
     text = "\n"
+
     for i in range(len(players)):
-        player = Player(get_player(players[i]))
+        user = get_player(players[i])
+        player = Player(user)
         vote = ""
 
         if vote_results:
@@ -873,11 +874,9 @@ def all_players_in_lobby(lobby, page):
             if player.game_status == "vote":
                 vote = "| ❌"
 
-
-
         us = vk.method("users.get", {"user_ids": player.user_id, "fields": "sex"})
         text += str(i + 1) + ". %s - @id%s (%s) %s\n" % (player.nickname, player.user_id, "%s %s" % (us[0].get('first_name'), us[0].get('last_name')), vote)
-        all_players += player
+        all_players += user
 
     return {'keyboard': list_keyboard(all_players, page, 7, "!choose"), 'text': text}
 
@@ -996,7 +995,7 @@ def player_actions(player, request):
         # In case of bug, will return to the menu
         if lobby.host == player.user_id:
             if request == "!bug":
-                finish_game(lobby, "republic")
+                finish_game(lobby, "host")
                 return
 
             elif request == "!force":
