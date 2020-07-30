@@ -664,7 +664,8 @@ def vote_for_rulers(lobby, who, choice):
 
     players = lobby.players
 
-    for user in players:
+    for i in range(len(players)):
+        user = Player(get_player(players[i]))
         msg(user.user_id, "@id%s (%s) %s" %(who.user_id, who.nickname, user.language("voted")))
 
     if len(result) == 1 or len(result) == 0:
@@ -996,7 +997,8 @@ def player_actions(player, request):
 
             elif request == "!force":
                 players = lobby.players
-                for user in players:
+                for i in range(len(players)):
+                    user = Player(get_player(players[i]))
                     msg(user.user_id, user.language("host_force"))
                     if user.game_status == "vote":
                         vote_for_rulers(lobby, user, random.randint(0, 1))
@@ -1199,7 +1201,7 @@ def player_actions(player, request):
 def msg_all(but_user, lobby, text, addition):
     players = lobby.players
     for i in range(len(players)):
-        player = Player(get_player(players[i]))
+        player = Player(get_player(int(players[i])))
         if player.user_id != but_user:
             msg(player.user_id, player.language(text) + " " + addition)
 
