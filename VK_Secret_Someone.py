@@ -552,7 +552,7 @@ def leave(player):
         notify = False
     else:
         notify = True
-        
+
     index = 0
     # Go trow all users, check and notify. Delete the user at last.
     for i in range(len(lobby.players)):
@@ -1328,7 +1328,7 @@ def finish_game(lobby, winners):
     for user in players:
         player = Player(get_player(user))
         clear_user(player)
-        msg_k(player.user_id, one_keyboard(player.language("start"), "positive", "!"), player.language("finished_" + winners))
+        msg_k(player.user_id, one_keyboard(player.language("start"), "positive", "!menu"), player.language("finished_" + winners))
 
     lobby.update_players([])
 
