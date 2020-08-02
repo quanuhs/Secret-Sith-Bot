@@ -657,10 +657,10 @@ def vote_for_rulers(lobby, who, choice):
 
     if choice:
         lobby.update_votes(lobby.votes + 1)
-        who.update_game_status("vote_for")
+        who.update_game_status("voted_for")
     else:
         lobby.update_votes(lobby.votes - 1)
-        who.update_game_status("vote_against")
+        who.update_game_status("voted_against")
 
     players = lobby.players
 
