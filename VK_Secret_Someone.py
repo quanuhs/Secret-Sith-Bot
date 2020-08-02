@@ -782,9 +782,9 @@ def setup_game(lobby):
             male_names.pop(0)
 
 
-        if roles[0] == "imp" or roles[0] == "sith":
+        if roles[0] == "imper" or roles[0] == "sith":
             sent_to.append([player.user_id, roles[0]])
-            if roles[0] == "imp":
+            if roles[0] == "imper":
                 imp_names += "@id%s (%s) \n" % (player.user_id, player.nickname)
             elif roles[0] == "sith":
                 sith_name = "@id%s (%s) " % (player.user_id, player.nickname)
