@@ -1102,10 +1102,9 @@ def player_actions(player, request):
                 if page.isnumeric():
                     choose_chancellor(player.user_id, lobby, int(page))
 
-        elif player.game_status == "take_actions":
-
-            if request == "!veto":
-                if lobby.imperial_table == 5:
+        elif lobby.imperial_table == 5:
+            if player.user_id == lobby.current_president or player.user_id == lobby.current_chancellor:
+                if request == "!veto":
                     if lobby.status == "veto":
                         if player.user_id == lobby.current_president:
                             lobby.current_president = -1
@@ -1118,21 +1117,25 @@ def player_actions(player, request):
                         lobby.update_status("veto")
                         player.update_game_status("")
                         president = Player(get_player(lobby.current_president))
-                        msg_k(lobby.current_president, inline_two(president.language("veto"), "positive", "!veto", president.language("no"), "negative", "!no"),
+                        msg_k(lobby.current_president,
+                              inline_two(president.language("veto"), "positive", "!veto", president.language("no"),
+                                         "negative", "!no"),
                               president.language("veto_ask"))
-                return
-
-            elif request == "!no":
-                if lobby.status == "veto":
-                    cards_in_use = lobby.cards_in_use
-                    disc = lobby.discard
-                    disc = disc + [cards_in_use[0]]
-                    lobby.update_discard(disc)
-                    cards_in_use.pop(0)
-                    lobby.update_cards_in_use(cards_in_use)
-                    add_to_table(lobby, cards_in_use[0])
-                    game_turn(lobby)
                     return
+
+                elif request == "!no" and player.user_id == lobby.current_president:
+                    if lobby.status == "veto":
+                        cards_in_use = lobby.cards_in_use
+                        disc = lobby.discard
+                        disc = disc + [cards_in_use[0]]
+                        lobby.update_discard(disc)
+                        cards_in_use.pop(0)
+                        lobby.update_cards_in_use(cards_in_use)
+                        add_to_table(lobby, cards_in_use[0])
+                        game_turn(lobby)
+                        return
+
+        elif player.game_status == "take_actions":
 
             if request.startswith("!choose "):
                 request = request.replace("!choose ", "")
