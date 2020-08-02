@@ -798,9 +798,9 @@ def setup_game(lobby):
     for i in range(len(sent_to)):
         if len(sent_to) > 2:
             if sent_to[i][1] != "sith":
-                msg(sent_to[i][0], imp_names + "\n>> " + sith_name)
+                msg(sent_to[i][0], "🔺🔺🔺\n" + imp_names + "👺 >> " + sith_name)
         else:
-            msg(sent_to[i][0], imp_names + "\n>> " + sith_name)
+            msg(sent_to[i][0], "🔺🔺🔺\n" + imp_names + "👺 >> " + sith_name)
 
     lobby.update_status("choose_president")
     lobby.update_players(players)
@@ -864,9 +864,9 @@ def all_players_in_lobby(lobby, page):
 
         if vote_results:
             if player.game_status == "voted_for":
-                vote = "| 👍"
+                vote = "| ✅"
             else:
-                vote = "| 👎"
+                vote = "| ❎"
 
             player.update_game_status("")
 
