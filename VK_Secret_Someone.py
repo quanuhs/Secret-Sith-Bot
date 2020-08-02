@@ -1104,8 +1104,6 @@ def player_actions(player, request):
 
         elif player.game_status == "take_actions":
 
-
-
             if request == "!veto":
                 if lobby.imperial_table == 5:
                     if lobby.status == "veto":
@@ -1116,7 +1114,7 @@ def player_actions(player, request):
                             lobby.add_republican_state(1)
                             game_turn(lobby)
 
-                    if player.user_id == lobby.current_chancellor and lobby.status == "veto_can":
+                    if player.user_id == lobby.current_chancellor and lobby.status == "can_veto":
                         lobby.update_status("veto")
                         player.update_game_status("")
                         president = Player(get_player(lobby.current_president))
