@@ -182,7 +182,12 @@ def inline_three(text1, color1, payload1, text2, color2, payload2, text3, color3
 token = os.environ.get('key')
 group_id = os.environ.get('group_id')
 DATABASE_URL = os.environ.get('DATABASE_URL')
-JAWSDB_URL = os.environ.get('JAWSDB_URL')
+
+DB_Username = os.environ.get('Username')
+DB_Password = os.environ.get('Password')
+DB_Port = os.environ.get('Port')
+DB_Host = os.environ.get('Host')
+DB_Database = os.environ.get('Database')
 
 vk = vk_api.VkApi(token=token)
 vk._auth_token()
@@ -208,7 +213,7 @@ imp_cards = 11
 # бывший президент, бывший канслер, колода, сброс, на доске империи, на доске либиралов, раскрытие закона, стадия, ход
 
 try:
-    connection = pymysql.connect(JAWSDB_URL)
+    connection = pymysql.connect(host=DB_Host, user=DB_Username, password = DB_Password, db= DB_Database)
     #connection = psycopg2.connect(DATABASE_URL, sslmode='require')
     #connection = sql.connect("some.sqlite", check_same_thread=False)
     q = connection.cursor()
@@ -232,7 +237,7 @@ except Exception:
     print("user_data already created")
 
 try:
-    connection = pymysql.connect(JAWSDB_URL)
+    connection = pymysql.connect(host=DB_Host, user=DB_Username, password=DB_Password, db=DB_Database)
     #connection = sql.connect("some.sqlite", check_same_thread=False)
     #connection = psycopg2.connect(DATABASE_URL, sslmode='require')
     q = connection.cursor()
@@ -1416,7 +1421,7 @@ while True:
                 if payload is not None:
                     request = payload.replace("\"", "")
 
-                connection = pymysql.connect(JAWSDB_URL)
+                connection = pymysql.connect(host=DB_Host, user=DB_Username, password=DB_Password, db=DB_Database)
                 #connection = psycopg2.connect(DATABASE_URL, sslmode='require')
                 #connection = sql.connect("some.sqlite", check_same_thread=False)
                 q = connection.cursor()
