@@ -180,7 +180,7 @@ def inline_three(text1, color1, payload1, text2, color2, payload2, text3, color3
 # Ключи авторизации.
 token = os.environ.get('key')
 group_id = os.environ.get('group_id')
-DATABASE_URL = os.environ.get('DATABASE_URL')
+DATABASE_URL = os.environ.get('JAWSDB_URL')
 
 vk = vk_api.VkApi(token=token)
 vk._auth_token()
