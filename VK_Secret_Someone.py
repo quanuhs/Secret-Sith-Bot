@@ -5,6 +5,7 @@ import os
 import psycopg2
 import random
 import sqlite3 as sql
+import pymysql
 import threading
 
 # START
@@ -180,7 +181,8 @@ def inline_three(text1, color1, payload1, text2, color2, payload2, text3, color3
 # Ключи авторизации.
 token = os.environ.get('key')
 group_id = os.environ.get('group_id')
-DATABASE_URL = os.environ.get('JAWSDB_URL')
+DATABASE_URL = os.environ.get('DATABASE_URL')
+JAWSDB_URL = os.environ.get('JAWSDB_URL')
 
 vk = vk_api.VkApi(token=token)
 vk._auth_token()
@@ -206,7 +208,8 @@ imp_cards = 11
 # бывший президент, бывший канслер, колода, сброс, на доске империи, на доске либиралов, раскрытие закона, стадия, ход
 
 try:
-    connection = psycopg2.connect(DATABASE_URL, sslmode='require')
+    connection = pymysql.connect(JAWSDB_URL)
+    #connection = psycopg2.connect(DATABASE_URL, sslmode='require')
     #connection = sql.connect("some.sqlite", check_same_thread=False)
     q = connection.cursor()
     q.execute('''CREATE TABLE user_info
@@ -229,8 +232,9 @@ except Exception:
     print("user_data already created")
 
 try:
+    connection = pymysql.connect(JAWSDB_URL)
     #connection = sql.connect("some.sqlite", check_same_thread=False)
-    connection = psycopg2.connect(DATABASE_URL, sslmode='require')
+    #connection = psycopg2.connect(DATABASE_URL, sslmode='require')
     q = connection.cursor()
     q.execute('''CREATE TABLE lobby_info
                (
@@ -1412,8 +1416,8 @@ while True:
                 if payload is not None:
                     request = payload.replace("\"", "")
 
-
-                connection = psycopg2.connect(DATABASE_URL, sslmode='require')
+                connection = pymysql.connect(JAWSDB_URL)
+                #connection = psycopg2.connect(DATABASE_URL, sslmode='require')
                 #connection = sql.connect("some.sqlite", check_same_thread=False)
                 q = connection.cursor()
                 q.execute("SELECT * FROM user_info WHERE User_ID = '%s'" % (user_id))
