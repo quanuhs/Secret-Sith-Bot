@@ -213,8 +213,8 @@ imp_cards = 11
 # бывший президент, бывший канслер, колода, сброс, на доске империи, на доске либиралов, раскрытие закона, стадия, ход
 
 try:
-    connection = pymysql.connect(host=DB_Host, user=DB_Username, password = DB_Password, db= DB_Database)
-    #connection = psycopg2.connect(DATABASE_URL, sslmode='require')
+    #connection = pymysql.connect(host=DB_Host, user=DB_Username, password = DB_Password, db= DB_Database)
+    connection = psycopg2.connect(DATABASE_URL, sslmode='require')
     #connection = sql.connect("some.sqlite", check_same_thread=False)
     q = connection.cursor()
     q.execute('''CREATE TABLE user_info
@@ -237,9 +237,9 @@ except Exception:
     print("user_data already created")
 
 try:
-    connection = pymysql.connect(host=DB_Host, user=DB_Username, password=DB_Password, db=DB_Database)
+    #connection = pymysql.connect(host=DB_Host, user=DB_Username, password=DB_Password, db=DB_Database)
     #connection = sql.connect("some.sqlite", check_same_thread=False)
-    #connection = psycopg2.connect(DATABASE_URL, sslmode='require')
+    connection = psycopg2.connect(DATABASE_URL, sslmode='require')
     q = connection.cursor()
     q.execute('''CREATE TABLE lobby_info
                (
@@ -1421,8 +1421,8 @@ while True:
                 if payload is not None:
                     request = payload.replace("\"", "")
 
-                connection = pymysql.connect(host=DB_Host, user=DB_Username, password=DB_Password, db=DB_Database)
-                #connection = psycopg2.connect(DATABASE_URL, sslmode='require')
+                #connection = pymysql.connect(host=DB_Host, user=DB_Username, password=DB_Password, db=DB_Database)
+                connection = psycopg2.connect(DATABASE_URL, sslmode='require')
                 #connection = sql.connect("some.sqlite", check_same_thread=False)
                 q = connection.cursor()
                 q.execute("SELECT * FROM user_info WHERE User_ID = '%s'" % (user_id))
