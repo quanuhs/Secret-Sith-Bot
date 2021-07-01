@@ -886,7 +886,7 @@ def all_players_in_lobby(lobby, page):
                 vote = "| ❌"
 
         
-        text += str(i + 1) + ". %s - @id%s (%s) %s\n" % (player.nickname, player.user_id, "%s %s" % (us[i][0].get('first_name'), us[i][0].get('last_name')), vote)
+        text += str(i + 1) + ". %s - @id%s (%s) %s\n" % (player.nickname, player.user_id, "%s %s" % (us[i].get('first_name'), us[i].get('last_name')), vote)
         all_players += user
 
     return {'keyboard': list_keyboard(all_players, page, 7, "!choose"), 'text': text}
